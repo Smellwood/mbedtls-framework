@@ -299,6 +299,7 @@ nc_leaves = nc-dns-ok.crt nc-dns-case.crt nc-dns-bad.crt nc-dns-suffix.crt \
 	nc-ip-ok.crt nc-ip-bad4.crt nc-ip-bad6.crt nc-ip-excl.crt \
 	nc-email-ok.crt nc-email-bad.crt nc-email-excl.crt nc-email-subj.crt \
 	nc-dirname-ok.crt nc-dirname-bad.crt nc-dirname-excl.crt nc-dirname-san-bad.crt \
+	nc-dirname-short.crt \
 	nc-uri-dns.crt nc-uri-bad.crt \
 	nc-cdn-ok.crt nc-cdn-bad-outer.crt nc-cdn-bad-inner.crt
 NC_LEAF_SUBJ = /C=NL/O=PolarSSL/CN=NC Test leaf
@@ -307,6 +308,7 @@ nc-dns-cn-ok.crt: NC_LEAF_SUBJ = /C=NL/O=PolarSSL/CN=www.dszn.cz
 nc-dns-cn-bad.crt: NC_LEAF_SUBJ = /C=NL/O=PolarSSL/CN=www.example.net
 nc-email-subj.crt: NC_LEAF_SUBJ = /C=NL/O=PolarSSL/CN=NC Test leaf/emailAddress=user@example.net
 nc-dirname-bad.crt: NC_LEAF_SUBJ = /C=UK/O=Mbed TLS/CN=NC Test leaf
+nc-dirname-short.crt: NC_LEAF_SUBJ = /C=NL
 nc-dirname-excl.crt: NC_LEAF_SUBJ = /C=NL/O=PolarSSL/OU=Excluded/CN=NC Test leaf
 nc-cdn-ok.crt nc-cdn-bad-outer.crt nc-cdn-bad-inner.crt: NC_LEAF_CHAIN = nc-int2-cdn.crt nc-int-dns.crt
 $(nc_leaves): nc-%.crt: $(nc_leaf_key_file) $(nc_ca_key_file) $(nc_config_file) $(nc_ints) nc-int2-cdn.crt

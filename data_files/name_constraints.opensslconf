@@ -170,6 +170,9 @@ basicConstraints = CA:false
 basicConstraints = CA:false
 subjectAltName = dirName:nc_dn_other
 
+[nc_dirname_short]
+basicConstraints = CA:false
+
 [nc_uri_dns]
 basicConstraints = CA:false
 subjectAltName = DNS:www.example.com
