@@ -191,7 +191,9 @@ class ChangeLog:
     _only_url_re = re.compile(r'^\s*\w+://\S+\s*$')
     _has_url_re = re.compile(r'.*://.*')
     _entry_start_re = re.compile(r'   \* \S.*\Z')
-    _continuation_re = re.compile(r'     \S.*\Z')
+    # Continuation lines are indented by at least 5 spaces. Deeper
+    # indentation is allowed for nested lists inside an entry.
+    _continuation_re = re.compile(r'     +\S.*\Z')
 
     def add_categories_from_text(self, filename, line_offset,
                                  text, allow_unknown_category,
@@ -214,15 +216,19 @@ class ChangeLog:
             body_split = category.body.splitlines()
 
             for line_number, line in enumerate(body_split, 1):
-                if entry_file:
-                    pattern = (self._entry_start_re if line_number == 1
-                               else self._continuation_re)
-                    if (line or line_number == 1) and not pattern.fullmatch(line):
+                if entry_file and (line or line_number == 1):
+                    # The first line must start an entry. Subsequent lines
+                    # either start another entry in the same category
+                    # or continue the current one.
+                    if not (self._entry_start_re.fullmatch(line) or
+                            (line_number > 1 and
+                             self._continuation_re.fullmatch(line))):
                         raise InputFormatError(
                             filename,
                             line_offset + category.body_line + line_number - 1,
-                            'Malformed entry line: expected one "   * " start and '
-                            'five-space continuations')
+                            'Malformed entry line: expected entries starting '
+                            'with "   * " and continuation lines indented by '
+                            'at least five spaces')
                 if not self._only_url_re.match(line) and \
                    len(line) > MAX_LINE_LENGTH:
                     long_url_msg = '. URL exceeding length limit must be alone in its line.' \
