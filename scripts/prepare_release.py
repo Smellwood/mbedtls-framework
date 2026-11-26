@@ -567,6 +567,41 @@ class ArchiveStep(Step):
     def name(cls) -> str:
         return 'archive'
 
+    def missing_generated_files(self) -> List[str]:
+        """List generated files that are not committed, in all products.
+
+        The archive is built from the committed trees only, so any
+        generated file that is not committed would be silently missing
+        from the archive.
+        """
+        missing = []
+        for project in [os.curdir] + list(self.info.submodules):
+            if project == 'framework' or project.endswith('/framework'):
+                continue
+            project_dir = self.info.top_dir / project
+            gen_script = project_dir / 'framework/scripts/make_generated_files.py'
+            # Skip submodules that do not use the framework build machinery.
+            if not gen_script.exists():
+                continue
+            files = GeneratedFilesStep.list_project_generated_files(project_dir)
+            if not files:
+                continue
+            tracked = set(self.read_git(['ls-tree', '-r', '-z', '--name-only',
+                                         'HEAD', '--'] + files,
+                                        where=project_dir)
+                          .decode('utf-8').split('\0'))
+            missing += [os.path.normpath(os.path.join(project, name))
+                        for name in files if name not in tracked]
+        return missing
+
+    def assert_preconditions(self) -> None:
+        super().assert_preconditions()
+        missing = self.missing_generated_files()
+        if missing:
+            raise Exception('{} generated files are not committed '
+                            '(run the genfiles step first), e.g. {}'
+                            .format(len(missing), ', '.join(missing[:3])))
+
     def tar_git_files(self, plain_tar_path: str, prefix: str) -> None:
         """Create an uncompressed tar file from the committed trees."""
         mtime = self.commit_timestamp()
